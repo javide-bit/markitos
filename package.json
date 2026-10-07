@@ -1,9 +1,9 @@
 {
-  "name": "marktext-monorepo",
+  "name": "markitos-monorepo",
   "version": "0.21.0-dev",
-  "description": "MarkText monorepo root",
+  "description": "Markitos monorepo root",
   "private": true,
-  "homepage": "https://github.com/marktext/marktext",
+  "homepage": "https://github.com/javide-bit/markitos",
   "packageManager": "pnpm@10.33.4",
   "engines": {
     "node": ">=20.19.0",
