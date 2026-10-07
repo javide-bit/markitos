@@ -86,7 +86,7 @@ if (!process.mas && !import.meta.env.DEV) {
 registerSandboxIpcHandlers()
 
 // Windows-specific AppUserModelID
-electronApp.setAppUserModelId('com.electron.marktext')
+electronApp.setAppUserModelId('com.github.javide-bit.markitos')
 
 // Dev shortcuts and reload suppression
 app.on('browser-window-created', (_, window) => {

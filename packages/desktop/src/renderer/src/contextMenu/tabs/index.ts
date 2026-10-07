@@ -1,5 +1,6 @@
 import {
   SEPARATOR,
+  getSave,
   getCloseThis,
   getCloseOthers,
   getCloseSaved,
@@ -38,6 +39,7 @@ interface TabLike {
 
 export const showContextMenu = (event: ContextMenuClickEvent, tab: TabLike): void => {
   const { pathname } = tab
+  const save = getSave()
   const closeThis = getCloseThis()
   const closeOthers = getCloseOthers()
   const closeSaved = getCloseSaved()
@@ -51,6 +53,8 @@ export const showContextMenu = (event: ContextMenuClickEvent, tab: TabLike): voi
   })
 
   const items = [
+    save,
+    SEPARATOR,
     closeThis,
     closeOthers,
     closeSaved,

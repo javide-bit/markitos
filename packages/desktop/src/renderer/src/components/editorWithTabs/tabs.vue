@@ -83,12 +83,7 @@ const selectFile = (file: IFileState) => {
 }
 
 const removeFileInTab = (file: IFileState) => {
-  const { isSaved } = file
-  if (isSaved) {
-    editorStore.FORCE_CLOSE_TAB(file)
-  } else {
-    editorStore.CLOSE_UNSAVED_TAB(file)
-  }
+  editorStore.CLOSE_TAB(file)
 }
 
 // Original methods
@@ -126,6 +121,13 @@ const handleTabScroll = (event: WheelEvent) => {
   if (!tabsEl) return
   const newLeft = Math.max(0, Math.min(tabsEl.scrollLeft + delta, tabsEl.scrollWidth))
   tabsEl.scrollLeft = newLeft
+}
+
+const saveTab = (tabId: unknown) => {
+  const tab = tabs.value.find((f) => f.id === tabId)
+  if (tab) {
+    editorStore.SAVE_TAB(tab)
+  }
 }
 
 const closeTab = (tabId: unknown) => {
@@ -189,6 +191,7 @@ watch(
 )
 
 onMounted(() => {
+  bus.on('TABS::save', saveTab)
   bus.on('TABS::close-this', closeTab)
   bus.on('TABS::close-others', closeOthers)
   bus.on('TABS::close-saved', closeSaved)
@@ -261,6 +264,7 @@ onBeforeUnmount(() => {
   }
 
   // Remove event listeners
+  bus.off('TABS::save', saveTab)
   bus.off('TABS::close-this', closeTab)
   bus.off('TABS::close-others', closeOthers)
   bus.off('TABS::close-saved', closeSaved)

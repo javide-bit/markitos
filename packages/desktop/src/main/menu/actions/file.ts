@@ -352,15 +352,31 @@ const showUnsavedFilesMessage = async(
   win: BrowserWindow,
   files: UnsavedFile[]
 ): Promise<{ needSave: boolean } | null> => {
+  const isSingle = files.length === 1
+  const singlePrompt = t('dialog.saveChangesSingle', { name: files[0].filename })
+  const multiplePrompt = t('dialog.saveChangesMultiple', {
+    count: files.length,
+    files: files.map((f) => f.filename).join('\n')
+  })
+
+  let message = ''
+  if (isSingle) {
+    message =
+      singlePrompt !== 'dialog.saveChangesSingle'
+        ? singlePrompt
+        : `${t('dialog.saveChanges')} - ${files[0].filename}`
+  } else {
+    message =
+      multiplePrompt !== 'dialog.saveChangesMultiple'
+        ? multiplePrompt
+        : `${t('dialog.saveChanges')}:\n\n${files.map((f) => f.filename).join('\n')}`
+  }
+
   const { response } = await dialog.showMessageBox(win, {
     type: 'warning',
     buttons: [t('dialog.save'), t('dialog.dontSave'), t('dialog.cancel')],
     defaultId: 0,
-    message: t('dialog.saveChanges', {
-      count: files.length,
-      type: files.length === 1 ? t('dialog.file') : t('dialog.files'),
-      files: files.map((f) => f.filename).join('\n')
-    }),
+    message,
     detail: t('dialog.changesWillBeLost'),
     cancelId: 2,
     noLink: true
@@ -552,8 +568,11 @@ ipcMain.on('mt::close-window-confirm', async(e, unsavedFiles: UnsavedFile[]) => 
         )
       )
     )
-      .then(() => {
-        ipcMain.emit('window-close-by-id', win.id)
+      .then((arr) => {
+        const allSaved = arr.every((id) => id != null)
+        if (allSaved) {
+          ipcMain.emit('window-close-by-id', win.id)
+        }
       })
       .catch((err: unknown) => {
         log.error('Error while saving before quit:', err)

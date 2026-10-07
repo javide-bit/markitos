@@ -213,7 +213,8 @@
       "closeAllTabs": "Fechar todas as abas",
       "rename": "Renomear",
       "copyPath": "Copiar caminho",
-      "showInFolder": "Mostrar na pasta"
+      "showInFolder": "Mostrar na pasta",
+      "save": "Salvar"
     }
   },
   "search": {
@@ -917,7 +918,9 @@
     "unsafeFileTitle": "Arquivo potencialmente inseguro",
     "unsafeFileMessage": "Este link abre um arquivo que pode executar código",
     "unsafeFileDetail": "\"{name}\" é um arquivo executável ou de script. Abri-lo pode executar programas no seu computador. Continue apenas se confiar neste documento.",
-    "openAnyway": "Abrir mesmo assim"
+    "openAnyway": "Abrir mesmo assim",
+    "saveChangesSingle": "Deseja salvar as alterações feitas em \"{name}\"?",
+    "saveChangesMultiple": "Deseja salvar as alterações feitas nos seguintes arquivos?\n\n{files}"
   },
   "error": {
     "configSchemaViolation": "Violação do esquema de configuração",

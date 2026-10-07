@@ -207,6 +207,7 @@
       "showInFolder": "Mostrar en Carpeta"
     },
     "tabs": {
+      "save": "Guardar",
       "close": "Cerrar",
       "closeOthers": "Cerrar otros",
       "closeSavedTabs": "Cerrar pestañas guardadas",
@@ -913,6 +914,8 @@
     "replace": "Reemplazar",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
+    "saveChangesSingle": "¿Desea guardar los cambios realizados en «{name}»?",
+    "saveChangesMultiple": "¿Desea guardar los cambios realizados en los siguientes archivos?\n\n{files}",
     "saveFailure": "Error al guardar",
     "unsafeFileTitle": "Archivo potencialmente peligroso",
     "unsafeFileMessage": "Este enlace abre un archivo que puede ejecutar código",

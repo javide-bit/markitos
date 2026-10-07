@@ -213,7 +213,8 @@
       "closeAllTabs": "Alle tabbladen sluiten",
       "rename": "Hernoemen",
       "copyPath": "Pad kopiëren",
-      "showInFolder": "Tonen in map"
+      "showInFolder": "Tonen in map",
+      "save": "Opslaan"
     }
   },
   "search": {
@@ -917,7 +918,9 @@
     "unsafeFileTitle": "Mogelijk onveilig bestand",
     "unsafeFileMessage": "Deze link opent een bestand dat code kan uitvoeren",
     "unsafeFileDetail": "\"{name}\" is een uitvoerbaar bestand of script. Het openen kan programma's op je computer uitvoeren. Ga alleen door als je dit document vertrouwt.",
-    "openAnyway": "Toch openen"
+    "openAnyway": "Toch openen",
+    "saveChangesSingle": "Wilt u de wijzigingen in \"{name}\" opslaan?",
+    "saveChangesMultiple": "Wilt u de wijzigingen in de volgende bestanden opslaan?\n\n{files}"
   },
   "error": {
     "configSchemaViolation": "Configuratieschemaovertreding",

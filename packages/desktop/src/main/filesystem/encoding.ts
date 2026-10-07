@@ -1,5 +1,12 @@
-import ced from 'ced'
 import type { Encoding } from 'common/encoding'
+
+let ced: ((buffer: Buffer) => string) | null = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  ced = require('ced')
+} catch {
+  ced = null
+}
 
 const CED_ICONV_ENCODINGS: Record<string, string> = {
   'BIG5-CP950': 'big5',
@@ -70,11 +77,19 @@ export const guessEncoding = (buffer: Buffer, autoGuessEncoding: boolean): Encod
     if (isLikelyUtf8(buffer)) {
       return { encoding: 'utf8', isBom }
     }
-    encoding = ced(buffer)
-    if (CED_ICONV_ENCODINGS[encoding]) {
-      encoding = CED_ICONV_ENCODINGS[encoding]
+    if (ced) {
+      try {
+        encoding = ced(buffer)
+        if (CED_ICONV_ENCODINGS[encoding]) {
+          encoding = CED_ICONV_ENCODINGS[encoding]
+        } else {
+          encoding = encoding.toLowerCase().replace(/-_/g, '')
+        }
+      } catch {
+        encoding = 'utf8'
+      }
     } else {
-      encoding = encoding.toLowerCase().replace(/-_/g, '')
+      encoding = 'utf8'
     }
   }
   return { encoding, isBom }

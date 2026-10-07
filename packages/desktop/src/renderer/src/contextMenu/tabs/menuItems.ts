@@ -10,6 +10,14 @@ export const SEPARATOR = {
 // Use function form to avoid calling the translation function during module load
 type TabMenuItem = { _tabId: string; [key: string]: unknown }
 
+export const getSave = () => ({
+  label: t('contextMenu.tabs.save') || t('menu.file.save'),
+  id: 'saveTab',
+  click(menuItem: TabMenuItem, _browserWindow?: unknown) {
+    contextMenu.save(menuItem._tabId)
+  }
+})
+
 export const getCloseThis = () => ({
   label: t('contextMenu.tabs.close'),
   id: 'closeThisTab',
@@ -68,6 +76,7 @@ export const getShowInFolder = () => ({
 })
 
 // Retained for backward compatibility
+export const SAVE = getSave()
 export const CLOSE_THIS = getCloseThis()
 export const CLOSE_OTHERS = getCloseOthers()
 export const CLOSE_SAVED = getCloseSaved()

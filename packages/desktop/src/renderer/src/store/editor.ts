@@ -546,12 +546,13 @@ export const useEditorStore = defineStore('editor', {
       bus.emit('flush-active-editor')
     },
 
-    FILE_SAVE(): void {
-      if (!this.currentFile) return
-      this.flushActiveEditor()
+    SAVE_TAB(file: IFileState): void {
+      if (this.currentFile?.id === file.id) {
+        this.flushActiveEditor()
+      }
       const projectStore = useProjectStore()
-      const { id, filename, pathname, markdown } = this.currentFile
-      const options = getOptionsFromState(this.currentFile)
+      const { id, filename, pathname, markdown } = file
+      const options = getOptionsFromState(file)
       const defaultPath = getRootFolderFromState(projectStore)
       if (id) {
         window.electron.ipcRenderer.send(
@@ -564,6 +565,11 @@ export const useEditorStore = defineStore('editor', {
           defaultPath
         )
       }
+    },
+
+    FILE_SAVE(): void {
+      if (!this.currentFile) return
+      this.SAVE_TAB(this.currentFile)
     },
 
     // need pass some data to main process when `save` menu item clicked
@@ -681,8 +687,8 @@ export const useEditorStore = defineStore('editor', {
 
     LISTEN_FOR_CLOSE(): void {
       const projectStore = useProjectStore()
-      const preferencesStore = usePreferencesStore()
       window.electron.ipcRenderer.on('mt::ask-for-close', () => {
+        this.flushActiveEditor()
         sendBufferedState()
           .catch((err) => {
             console.error('Failed to update buffered state before closing', err)
@@ -703,8 +709,7 @@ export const useEditorStore = defineStore('editor', {
                 }
               })
 
-            if (unsavedFiles.length && preferencesStore.startUpAction !== 'restoreAll') {
-              // Ignore unsaved files when user has chosen to restore all on startup, as they will be restored anyway.
+            if (unsavedFiles.length) {
               window.electron.ipcRenderer.send('mt::close-window-confirm', deepClone(unsavedFiles))
             } else {
               window.electron.ipcRenderer.send('mt::close-window')
@@ -999,6 +1004,10 @@ export const useEditorStore = defineStore('editor', {
       const target = file ?? this.currentFile
       if (target === null) return
 
+      if (target.id === this.currentFile?.id) {
+        this.flushActiveEditor()
+      }
+
       if (target.isSaved) {
         this.FORCE_CLOSE_TAB(target)
       } else {
@@ -1092,19 +1101,44 @@ export const useEditorStore = defineStore('editor', {
     },
 
     CLOSE_UNSAVED_TAB(file: IFileState): void {
+      const projectStore = useProjectStore()
       const { id, pathname, filename, markdown } = file
       const options = getOptionsFromState(file)
       window.electron.ipcRenderer.send('mt::save-and-close-tabs', [
-        { id, pathname, filename, markdown, options: deepClone(options) }
+        {
+          id,
+          pathname,
+          filename,
+          markdown,
+          options: deepClone(options),
+          defaultPath: getRootFolderFromState(projectStore)
+        }
       ])
     },
 
     CLOSE_OTHER_TABS(file: IFileState): void {
-      this.tabs
-        .filter((f) => f.id !== file.id)
-        .forEach((tab) => {
-          this.CLOSE_TAB(tab)
-        })
+      if (this.currentFile?.id && this.currentFile.id !== file.id) {
+        this.flushActiveEditor()
+      }
+      const otherTabs = this.tabs.filter((f) => f.id !== file.id)
+      const savedOtherTabs = otherTabs.filter((f) => f.isSaved)
+      const unsavedOtherTabs = otherTabs.filter((f) => !f.isSaved)
+
+      if (savedOtherTabs.length) {
+        this.CLOSE_TABS(savedOtherTabs.map((f) => f.id))
+      }
+      if (unsavedOtherTabs.length) {
+        const projectStore = useProjectStore()
+        const payload = unsavedOtherTabs.map((f) => ({
+          id: f.id,
+          filename: f.filename,
+          pathname: f.pathname,
+          markdown: f.markdown,
+          options: deepClone(getOptionsFromState(f)),
+          defaultPath: getRootFolderFromState(projectStore)
+        }))
+        window.electron.ipcRenderer.send('mt::save-and-close-tabs', payload)
+      }
     },
 
     CLOSE_SAVED_TABS(): void {
@@ -1116,9 +1150,25 @@ export const useEditorStore = defineStore('editor', {
     },
 
     CLOSE_ALL_TABS(): void {
-      this.tabs.slice().forEach((tab) => {
-        this.CLOSE_TAB(tab)
-      })
+      this.flushActiveEditor()
+      const savedTabs = this.tabs.filter((f) => f.isSaved)
+      const unsavedTabs = this.tabs.filter((f) => !f.isSaved)
+
+      if (savedTabs.length) {
+        this.CLOSE_TABS(savedTabs.map((f) => f.id))
+      }
+      if (unsavedTabs.length) {
+        const projectStore = useProjectStore()
+        const payload = unsavedTabs.map((f) => ({
+          id: f.id,
+          filename: f.filename,
+          pathname: f.pathname,
+          markdown: f.markdown,
+          options: deepClone(getOptionsFromState(f)),
+          defaultPath: getRootFolderFromState(projectStore)
+        }))
+        window.electron.ipcRenderer.send('mt::save-and-close-tabs', payload)
+      }
     },
 
     CLOSE_TABS(tabIdList: string[]): void {

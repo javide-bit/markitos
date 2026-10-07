@@ -213,7 +213,8 @@
       "closeAllTabs": "Alle Tabs schließen",
       "rename": "Umbenennen",
       "copyPath": "Pfad kopieren",
-      "showInFolder": "Im Ordner anzeigen"
+      "showInFolder": "Im Ordner anzeigen",
+      "save": "Speichern"
     }
   },
   "search": {
@@ -917,7 +918,9 @@
     "unsafeFileTitle": "Möglicherweise unsichere Datei",
     "unsafeFileMessage": "Dieser Link öffnet eine Datei, die Code ausführen kann",
     "unsafeFileDetail": "„{name}“ ist eine ausführbare Datei oder ein Skript. Das Öffnen kann Programme auf Ihrem Computer ausführen. Fahren Sie nur fort, wenn Sie diesem Dokument vertrauen.",
-    "openAnyway": "Trotzdem öffnen"
+    "openAnyway": "Trotzdem öffnen",
+    "saveChangesSingle": "Möchten Sie die Änderungen in \"{name}\" speichern?",
+    "saveChangesMultiple": "Möchten Sie die Änderungen in folgenden Dateien speichern?\n\n{files}"
   },
   "error": {
     "configSchemaViolation": "Konfigurationsschema-Verletzung",

@@ -5,7 +5,7 @@ import { electronLocalshortcut } from '@hfelix/electron-localshortcut'
 import BaseWindow, { WindowLifecycle, WindowType, type EnvLike, type PreferenceLike } from './base'
 import type Accessor from '../app/accessor'
 import { centerWindowOptions } from './utils'
-import { TITLE_BAR_HEIGHT, preferencesWinOptions, isLinux, isOsx } from '../config'
+import { TITLE_BAR_HEIGHT, preferencesWinOptions, isLinux, isOsx, isWindows } from '../config'
 import log from 'electron-log'
 
 class SettingWindow extends BaseWindow {
@@ -33,7 +33,12 @@ class SettingWindow extends BaseWindow {
         y?: number
       }
     )
-    if (isLinux) {
+    if (isWindows) {
+      winOptions.icon = path.join(
+        (global as unknown as { __static: string }).__static,
+        'icon.ico'
+      )
+    } else if (isLinux) {
       winOptions.icon = path.join(
         (global as unknown as { __static: string }).__static,
         'logo-96px.png'
@@ -100,8 +105,9 @@ class SettingWindow extends BaseWindow {
     })
 
     this.lifecycle = WindowLifecycle.LOADING
-    win.loadURL(this._buildUrlString(this.id, env, preferences, category))
-    win.setSheetOffset(TITLE_BAR_HEIGHT)
+    if (isOsx && typeof win.setSheetOffset === 'function') {
+      win.setSheetOffset(TITLE_BAR_HEIGHT)
+    }
 
     const devToolsAccelerator = keybindings.getAccelerator('view.toggle-dev-tools')
     if (env.debug && devToolsAccelerator) {

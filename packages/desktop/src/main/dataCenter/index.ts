@@ -1,7 +1,18 @@
 import fs from 'fs'
 import path from 'path'
 import { BrowserWindow, dialog, ipcMain } from 'electron'
-import keytar from 'keytar'
+let keytar: {
+  getPassword: (service: string, account: string) => Promise<string | null>
+  setPassword: (service: string, account: string, password: string) => Promise<void>
+  deletePassword: (service: string, account: string) => Promise<boolean>
+} | null = null
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  keytar = require('keytar')
+} catch {
+  keytar = null
+}
 import schema from './schema.json'
 import Store, { type Schema } from 'electron-store'
 import log from 'electron-log'
@@ -72,10 +83,13 @@ class DataCenter extends TypedEmitter<DataCenterEvents> {
   async getAll(): Promise<Record<string, unknown>> {
     const { serviceName, encryptKeys } = this
     const data = this.store.store
+    if (!keytar) {
+      return data
+    }
     try {
       const encryptData = await Promise.all(
         encryptKeys.map((key) => {
-          return keytar.getPassword(serviceName, key)
+          return keytar!.getPassword(serviceName, key)
         })
       )
       const encryptObj = encryptKeys.reduce<Record<string, string | null>>((acc, k, i) => {
@@ -121,6 +135,7 @@ class DataCenter extends TypedEmitter<DataCenterEvents> {
   getItem(key: string): Promise<unknown> {
     const { encryptKeys, serviceName } = this
     if (encryptKeys.includes(key)) {
+      if (!keytar) return Promise.resolve(this.store.get(key) || null)
       return keytar.getPassword(serviceName, key)
     } else {
       const value = this.store.get(key)
@@ -135,6 +150,9 @@ class DataCenter extends TypedEmitter<DataCenterEvents> {
     }
     ipcMain.emit('broadcast-user-data-changed', { [key]: value })
     if (encryptKeys.includes(key)) {
+      if (!keytar) {
+        return this.store.set(key, value)
+      }
       try {
         return await keytar.setPassword(serviceName, key, value as string)
       } catch (err) {

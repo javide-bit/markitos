@@ -1,5 +1,9 @@
 import bus from '../../bus'
 
+export const save = (tabId: string): void => {
+  bus.emit('TABS::save', tabId)
+}
+
 export const closeThis = (tabId: string): void => {
   bus.emit('TABS::close-this', tabId)
 }

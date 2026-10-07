@@ -7,7 +7,7 @@ import { isChildOfDirectory, isSamePathSync } from 'common/filesystem/paths'
 import BaseWindow, { WindowLifecycle, WindowType } from './base'
 import type Accessor from '../app/accessor'
 import { ensureWindowPosition, zoomIn, zoomOut } from './utils'
-import { TITLE_BAR_HEIGHT, editorWinOptions, isLinux, isOsx } from '../config'
+import { TITLE_BAR_HEIGHT, editorWinOptions, isLinux, isOsx, isWindows } from '../config'
 import { showEditorContextMenu } from '../contextMenu/editor'
 import { loadMarkdownFile } from '../filesystem/markdown'
 import { switchLanguage } from '../spellchecker'
@@ -89,6 +89,7 @@ class EditorWindow extends BaseWindow {
     options: Partial<BrowserWindowConstructorOptions> = {},
     bufferStoreInfo: BufferStoreInfo | null = null
   ): BrowserWindow {
+    log.info('Creating editor window...', { rootDirectory, fileList, bufferStoreInfo })
     const { menu: appMenu, env, preferences, editorBufferStore } = this._accessor
     const addBlankTab =
       !bufferStoreInfo && !rootDirectory && fileList.length === 0 && markdownList.length === 0
@@ -104,8 +105,10 @@ class EditorWindow extends BaseWindow {
       editorWinOptions,
       options
     )
-    if (isLinux) {
-      winOptions.icon = path.join(process.cwd(), 'static', 'logo-96px.png')
+    if (isWindows) {
+      winOptions.icon = path.join((global as unknown as { __static: string }).__static, 'icon.ico')
+    } else if (isLinux) {
+      winOptions.icon = path.join((global as unknown as { __static: string }).__static, 'logo-96px.png')
     }
 
     const {
@@ -162,6 +165,7 @@ class EditorWindow extends BaseWindow {
     })
 
     win.webContents.once('did-finish-load', () => {
+      log.info('Editor window did-finish-load triggered')
       this.lifecycle = WindowLifecycle.READY
       this.emit('window-ready')
 
@@ -273,7 +277,9 @@ class EditorWindow extends BaseWindow {
 
     this.lifecycle = WindowLifecycle.LOADING
     win.loadURL(this._buildUrlString(this.id, env, preferences))
-    win.setSheetOffset(TITLE_BAR_HEIGHT)
+    if (isOsx && typeof win.setSheetOffset === 'function') {
+      win.setSheetOffset(TITLE_BAR_HEIGHT)
+    }
 
     mainWindowState.manage(win)
 

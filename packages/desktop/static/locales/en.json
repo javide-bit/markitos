@@ -207,6 +207,7 @@
       "showInFolder": "Show In Folder"
     },
     "tabs": {
+      "save": "Save",
       "close": "Close",
       "closeOthers": "Close others",
       "closeSavedTabs": "Close saved tabs",
@@ -913,6 +914,8 @@
     "replace": "Replace",
     "save": "Save",
     "saveChanges": "Save changes",
+    "saveChangesSingle": "Do you want to save the changes you made to \"{name}\"?",
+    "saveChangesMultiple": "Do you want to save the changes you made to the following files?\n\n{files}",
     "saveFailure": "Save failure",
     "unsafeFileTitle": "Potentially unsafe file",
     "unsafeFileMessage": "This link opens a file that can run code",

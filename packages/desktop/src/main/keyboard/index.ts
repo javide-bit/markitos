@@ -2,12 +2,9 @@ import { shell, ipcMain } from 'electron'
 import log from 'electron-log'
 import EventEmitter from 'events'
 import fsPromises from 'fs/promises'
-import {
-  getCurrentKeyboardLayout,
-  getKeyMap,
-  onDidChangeKeyboardLayout,
-  type IKeyboardLayoutInfo,
-  type IKeyboardMapping
+import type {
+  IKeyboardLayoutInfo,
+  IKeyboardMapping
 } from 'native-keymap'
 import os from 'os'
 import path from 'path'
@@ -19,11 +16,41 @@ export interface KeyboardInfo {
 
 type KeyboardInfoListener = (info: KeyboardInfo) => void
 
+let nativeKeymap: {
+  getCurrentKeyboardLayout: () => IKeyboardLayoutInfo
+  getKeyMap: () => IKeyboardMapping
+  onDidChangeKeyboardLayout: (callback: () => void) => void
+} | null = null
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require('native-keymap')
+  const map = mod && typeof mod.getKeyMap === 'function' ? mod.getKeyMap() : null
+  if (map && !Array.isArray(map) && Object.keys(map).length > 0) {
+    nativeKeymap = mod
+  } else {
+    nativeKeymap = null
+  }
+} catch {
+  nativeKeymap = null
+}
+
 let currentKeyboardInfo: KeyboardInfo | null = null
 const loadKeyboardInfo = (): KeyboardInfo => {
+  if (nativeKeymap) {
+    try {
+      currentKeyboardInfo = {
+        layout: nativeKeymap.getCurrentKeyboardLayout(),
+        keymap: nativeKeymap.getKeyMap()
+      }
+      return currentKeyboardInfo
+    } catch {
+      // Fall through to fallback
+    }
+  }
   currentKeyboardInfo = {
-    layout: getCurrentKeyboardLayout(),
-    keymap: getKeyMap()
+    layout: { id: 'default', name: 'Default' },
+    keymap: {}
   }
   return currentKeyboardInfo
 }
@@ -66,16 +93,22 @@ class KeyboardLayoutMonitor extends EventEmitter {
   _ensureNativeListener(): void {
     if (!this._isSubscribed) {
       this._isSubscribed = true
-      onDidChangeKeyboardLayout(() => {
-        // The keyboard layout change event may be emitted multiple times.
-        if (this._emitTimer) {
-          clearTimeout(this._emitTimer)
+      if (nativeKeymap?.onDidChangeKeyboardLayout) {
+        try {
+          nativeKeymap.onDidChangeKeyboardLayout(() => {
+            // The keyboard layout change event may be emitted multiple times.
+            if (this._emitTimer) {
+              clearTimeout(this._emitTimer)
+            }
+            this._emitTimer = setTimeout(() => {
+              this.emit(KEYBOARD_LAYOUT_MONITOR_CHANNEL_ID, loadKeyboardInfo())
+              this._emitTimer = null
+            }, 150)
+          })
+        } catch (err) {
+          log.warn('native-keymap layout listener failed:', err)
         }
-        this._emitTimer = setTimeout(() => {
-          this.emit(KEYBOARD_LAYOUT_MONITOR_CHANNEL_ID, loadKeyboardInfo())
-          this._emitTimer = null
-        }, 150)
-      })
+      }
     }
   }
 }
